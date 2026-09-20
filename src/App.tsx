@@ -1,3 +1,3 @@
 export const App = () => {
-  return <h1>なんかできた。</h1>
+  return <h1>なんかできた。スマホでも見える。</h1>
 }
