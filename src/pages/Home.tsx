@@ -6,12 +6,7 @@ import Typography from '@mui/material/Typography';
 
 export const Home = () => {
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: 'grey.100',
-      }}
-    >
+    <Box>
       <Box
         sx={{
           p: 2,

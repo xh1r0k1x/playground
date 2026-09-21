@@ -13,7 +13,7 @@ export const Header = () => {
   return (
     <>
       <AppBar position="static" color="transparent" elevation={0}>
-        <Toolbar disableGutters>
+        <Toolbar>
           <Typography
             variant="h5"
             sx={{
