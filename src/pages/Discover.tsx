@@ -1,5 +1,5 @@
 // --- React Hooks ---
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 // --- MUI ---
@@ -9,6 +9,8 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
+import Divider from '@mui/material/Divider';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 // --- Others ---
 import { contents } from '@/data/contents';
@@ -33,15 +35,22 @@ export const Discover = () => {
     searchResult = (
       <List>
         {filteredContents.map((content) => (
-          <ListItem key={content.id} disablePadding>
-            <ListItemButton
-              onClick={() => {
-                navigate(`/contents/${content.id}`, { state: { searchText } });
-              }}
-            >
-              <ListItemText primary={content.title} />
-            </ListItemButton>
-          </ListItem>
+          <Fragment key={content.id}>
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  navigate(`/contents/${content.id}`, {
+                    state: { searchText },
+                  });
+                }}
+              >
+                <ListItemText primary={content.title} />
+                <ChevronRightIcon />
+              </ListItemButton>
+            </ListItem>
+
+            <Divider />
+          </Fragment>
         ))}
       </List>
     );
