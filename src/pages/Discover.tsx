@@ -49,7 +49,9 @@ export const Discover = () => {
 
   return (
     <>
-      <Typography variant="h4">見つける</Typography>
+      <Typography variant="h4" sx={{ mb: 2 }}>
+        見つける
+      </Typography>
 
       <TextField
         label="検索"
