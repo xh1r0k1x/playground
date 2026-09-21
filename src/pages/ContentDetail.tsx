@@ -8,12 +8,13 @@ import Button from '@mui/material/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 // --- Others ---
-import { contents } from '@/data/contents';
+import { contents, contentTypeLabels } from '@/data/contents';
 
 export const ContentDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const searchText = location.state?.searchText ?? '';
+  const from = location.state?.from ?? '/discover';
   const { id } = useParams();
   const content = contents.find((content) => content.id === id);
 
@@ -25,13 +26,22 @@ export const ContentDetail = () => {
     <>
       <Button
         startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/discover', { state: { searchText } })}
+        onClick={() => navigate(from, { state: { searchText } })}
       >
         戻る
       </Button>
-      <Chip label={content.type} size="small" />
-      <Typography variant="h4">{content.title}</Typography>
-      <Typography>{content.body}</Typography>
+      <Chip label={contentTypeLabels[content.type]} size="small" />
+      <Typography variant="h4" sx={{ mt: 2 }}>
+        {content.title}
+      </Typography>
+      <Typography
+        sx={{
+          mt: 2,
+          lineHeight: 1.8,
+        }}
+      >
+        {content.body}
+      </Typography>
     </>
   );
 };

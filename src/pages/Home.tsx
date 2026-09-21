@@ -1,10 +1,31 @@
+// --- React Hooks ---
+import { useNavigate } from 'react-router-dom';
+
 // --- MUI ---
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import CardActionArea from '@mui/material/CardActionArea';
 import Typography from '@mui/material/Typography';
 
+// --- Others ---
+import { contents, contentTypeLabels } from '@/data/contents';
+
 export const Home = () => {
+  const navigate = useNavigate();
+  const pickup = contents.find(
+    (content) => content.id === 'history-nobunaga-europe',
+  );
+  const curiousContents = contents.filter(
+    (content) =>
+      content.id === 'language-spanish-playa' ||
+      content.id === 'science-airplane-window',
+  );
+
+  if (!pickup) {
+    return <Typography>コンテンツが見つかりません</Typography>;
+  }
+
   return (
     <Box>
       <Box
@@ -17,13 +38,19 @@ export const Home = () => {
         </Typography>
 
         <Card>
-          <CardContent>
-            <Typography variant="body2">歴史</Typography>
+          <CardActionArea
+            onClick={() =>
+              navigate(`/contents/${pickup.id}`, { state: { from: '/' } })
+            }
+          >
+            <CardContent>
+              <Typography variant="body2">
+                {contentTypeLabels[pickup.type]}
+              </Typography>
 
-            <Typography variant="h6">
-              信長が生きていた頃、ヨーロッパでは何が起きていた？
-            </Typography>
-          </CardContent>
+              <Typography variant="h6">{pickup.title}</Typography>
+            </CardContent>
+          </CardActionArea>
         </Card>
 
         <Typography
@@ -44,19 +71,23 @@ export const Home = () => {
             gap: 2,
           }}
         >
-          <Card>
-            <CardContent>
-              <Typography variant="body2">外国語</Typography>
-              <Typography variant="h6">Me encanta la playa.</Typography>
-            </CardContent>
-          </Card>
+          {curiousContents.map((content) => (
+            <Card key={content.id}>
+              <CardActionArea
+                onClick={() =>
+                  navigate(`/contents/${content.id}`, { state: { from: '/' } })
+                }
+              >
+                <CardContent>
+                  <Typography variant="body2">
+                    {contentTypeLabels[content.type]}
+                  </Typography>
 
-          <Card>
-            <CardContent>
-              <Typography variant="body2">雑学</Typography>
-              <Typography variant="h6">飛行機の窓はなぜ丸い？</Typography>
-            </CardContent>
-          </Card>
+                  <Typography variant="h6">{content.title}</Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          ))}
         </Box>
       </Box>
     </Box>
