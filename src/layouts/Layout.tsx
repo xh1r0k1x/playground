@@ -30,6 +30,8 @@ export const Layout = () => {
           left: 0,
           right: 0,
           bgcolor: 'grey.50',
+          borderTop: 1,
+          borderColor: 'divider',
         }}
       >
         <BottomNavigationAction
