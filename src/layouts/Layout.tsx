@@ -29,6 +29,7 @@ export const Layout = () => {
           bottom: 0,
           left: 0,
           right: 0,
+          bgcolor: 'grey.50',
         }}
       >
         <BottomNavigationAction
