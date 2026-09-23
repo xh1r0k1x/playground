@@ -59,4 +59,12 @@ export const memos: MemoItem[] = [
       'JavaScriptでは、オブジェクトのプロパティ名と代入する変数名が同じ場合、プロパティの省略記法が使える。',
     tags: ['JavaScript', '構文'],
   },
+  {
+    title: '複数行のテキストを指定行数で省略する',
+    solution:
+      "display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' を組み合わせる。",
+    cause:
+      'WebkitLineClampだけでは完結せず、縦方向のboxレイアウトとoverflowの制御が必要。overflow: hiddenがないと、表示領域は制限されても後続要素にはみ出した文字が重なって見えることがある。',
+    tags: ['CSS', 'MUI'],
+  },
 ];

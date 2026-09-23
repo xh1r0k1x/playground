@@ -7,6 +7,7 @@ import { Home } from '@/pages/Home';
 import { Memo } from '@/pages/Memo';
 import { Discover } from '@/pages/Discover';
 import { ContentDetail } from '@/pages/ContentDetail';
+import { NewsDetail } from '@/pages/NewsDetail';
 
 export const App = () => {
   return (
@@ -16,6 +17,7 @@ export const App = () => {
         <Route path="/discover" element={<Discover />} />
         <Route path="/memo" element={<Memo />} />
         <Route path="/contents/:id" element={<ContentDetail />} />
+        <Route path="/news/:id" element={<NewsDetail />} />
       </Route>
     </Routes>
   );

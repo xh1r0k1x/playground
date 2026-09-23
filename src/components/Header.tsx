@@ -16,18 +16,62 @@ import WaterDropOutlinedIcon from '@mui/icons-material/WaterDropOutlined';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 import ThunderstormOutlinedIcon from '@mui/icons-material/ThunderstormOutlined';
 
+const getWeatherCache = () => {
+  const savedCache = sessionStorage.getItem('weatherCache');
+
+  if (!savedCache) {
+    return null;
+  }
+
+  const cache = JSON.parse(savedCache);
+  const fifteenMinutes = 15 * 60 * 1000;
+  const isFresh = cache && Date.now() - cache.savedAt < fifteenMinutes;
+
+  return isFresh ? cache : null;
+};
+
 export const Header = () => {
-  const [temperature, setTemperature] = useState<number | null>(null);
-  const [weatherCode, setWeatherCode] = useState<number | null>(null);
+  const [temperature, setTemperature] = useState<number | null>(() => {
+    const cache = getWeatherCache();
+    return cache?.temperature ?? null;
+  });
+  const [weatherCode, setWeatherCode] = useState<number | null>(() => {
+    const cache = getWeatherCache();
+    return cache?.weatherCode ?? null;
+  });
 
   useEffect(() => {
+    const cache = getWeatherCache();
+
+    if (cache) {
+      return;
+    }
+
     fetch(
-      'https://api.open-meteo.com/v1/forecast?latitude=35.6917&longitude=139.7500&current=temperature_2m,weather_code',
+      'https://api.open-meteo.com/v1/forecast?latitude=35.6917&longitude=139.7500&current=temperature_2m,weather_code&timezone=Asia%2FTokyo',
     )
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`天気APIエラー: ${response.status}`);
+        }
+
+        return response.json();
+      })
       .then((data) => {
         setTemperature(data.current.temperature_2m);
         setWeatherCode(data.current.weather_code);
+
+        sessionStorage.setItem(
+          'weatherCache',
+          JSON.stringify({
+            temperature: data.current.temperature_2m,
+            weatherCode: data.current.weather_code,
+            savedAt: Date.now(),
+          }),
+        );
+      })
+      .catch((error) => {
+        console.error('天気情報の取得に失敗しました', error);
       });
   }, []);
 
@@ -57,8 +101,13 @@ export const Header = () => {
 
   return (
     <>
-      <AppBar position="static" color="transparent" elevation={0}>
-        <Toolbar>
+      <AppBar
+        position="sticky"
+        color="transparent"
+        elevation={1}
+        sx={{ bgcolor: 'grey.50' }}
+      >
+        <Toolbar variant="dense">
           <Typography
             variant="h5"
             sx={{
@@ -71,7 +120,7 @@ export const Header = () => {
 
           <Chip
             icon={weatherIcon}
-            label={temperature === null ? '--\u00B0' : `${temperature}`}
+            label={temperature === null ? '--\u00B0' : `${temperature}\u00B0`}
             variant="outlined"
             sx={{ mr: 1 }}
           />

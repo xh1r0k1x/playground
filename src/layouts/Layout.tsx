@@ -17,7 +17,7 @@ export const Layout = () => {
     <>
       <Header />
 
-      <Container maxWidth="md" sx={{ pt: 3, pb: 10 }}>
+      <Container maxWidth="md" sx={{ pt: 1, pb: 10 }}>
         <Outlet />
       </Container>
 
