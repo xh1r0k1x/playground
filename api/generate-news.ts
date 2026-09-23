@@ -8,6 +8,22 @@ const ai = new GoogleGenAI({
 export async function POST(request: Request): Promise<Response> {
   const news = await request.json();
 
+  if (
+    !Array.isArray(news) ||
+    news.length !== 3 ||
+    !news.every(
+      (item) =>
+        typeof item === 'object' &&
+        item !== null &&
+        typeof item.title === 'string' &&
+        item.title.length <= 500 &&
+        typeof item.description === 'string' &&
+        item.description.length <= 2000,
+    )
+  ) {
+    return Response.json({ error: 'Invalid request' }, { status: 400 });
+  }
+
   const newsText = news
     .map(
       (item: { title: string; description: string }, index: number) => `

@@ -1,9 +1,10 @@
 // --- React Hooks ---
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // --- MUI ---
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -11,6 +12,7 @@ import CardActionArea from '@mui/material/CardActionArea';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 import Skeleton from '@mui/material/Skeleton';
+import Alert from '@mui/material/Alert';
 
 // --- Local Types ---
 import type { NewsItem } from '@/types/news';
@@ -30,27 +32,41 @@ export const Home = () => {
   );
   const [newsPage, setNewsPage] = useState(0);
 
+  const [newsError, setNewsError] = useState(false);
+
   const newsCarouselRef = useRef<HTMLDivElement>(null);
+
+  const generateNewsArticles = useCallback(async () => {
+    const response = await fetch('/api/generate-news', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(news),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to generate news: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.outputText) {
+      throw new Error('AI digest was not returned');
+    }
+
+    return JSON.parse(data.outputText);
+  }, [news]);
 
   useEffect(() => {
     if (news.length === 0 || generatedArticles.length > 0) {
       return;
     }
 
-    const testGemini = async () => {
-      const testResponse = await fetch('/api/generate-news', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(news),
-      });
-
-      const testData = await testResponse.json();
-
-      if (testData.outputText) {
-        const articles = JSON.parse(testData.outputText);
+    generateNewsArticles()
+      .then((articles) => {
         setGeneratedArticles(articles);
+
         sessionStorage.setItem(
           'newsCache',
           JSON.stringify({
@@ -58,11 +74,12 @@ export const Home = () => {
             generatedArticles: articles,
           }),
         );
-      }
-    };
-
-    testGemini();
-  }, [news, generatedArticles]);
+      })
+      .catch((error) => {
+        console.log(error);
+        setNewsError(true);
+      });
+  }, [news, generatedArticles, generateNewsArticles]);
 
   useEffect(() => {
     if (news.length > 0) {
@@ -259,6 +276,24 @@ export const Home = () => {
                         {loopGeneratedArticles[index]}
                       </Typography>
                     </>
+                  ) : newsError ? (
+                    <Alert
+                      severity="error"
+                      action={
+                        <Button
+                          color="inherit"
+                          size="small"
+                          onClick={() => {
+                            setNewsError(false);
+                            generateNewsArticles();
+                          }}
+                        >
+                          再試行
+                        </Button>
+                      }
+                    >
+                      AIダイジェストを取得できませんでした
+                    </Alert>
                   ) : (
                     <>
                       <Skeleton variant="text" />
