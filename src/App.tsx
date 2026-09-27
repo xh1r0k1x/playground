@@ -8,12 +8,14 @@ import { Memo } from '@/pages/Memo';
 import { Discover } from '@/pages/Discover';
 import { ContentDetail } from '@/pages/ContentDetail';
 import { NewsDetail } from '@/pages/NewsDetail';
+import { Language } from '@/pages/Language';
 
 export const App = () => {
   return (
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/language" element={<Language />} />
         <Route path="/discover" element={<Discover />} />
         <Route path="/memo" element={<Memo />} />
         <Route path="/contents/:id" element={<ContentDetail />} />

@@ -67,4 +67,12 @@ export const memos: MemoItem[] = [
       'WebkitLineClampだけでは完結せず、縦方向のboxレイアウトとoverflowの制御が必要。overflow: hiddenがないと、表示領域は制限されても後続要素にはみ出した文字が重なって見えることがある。',
     tags: ['CSS', 'MUI'],
   },
+  {
+    title: '文字列内の改行を画面に反映する',
+    solution:
+      "文字列に \\n を入れ、表示側で sx={{ whiteSpace: 'pre-line' }} を指定する。",
+    cause:
+      'HTMLでは文字列内の改行がそのまま画面上の改行として表示されない。whiteSpace: pre-line を指定すると \\n を改行として扱える。データ側に <br /> などのJSXを持たせずに済むため、APIやDBから取得する文字列にも使いやすい。',
+    tags: ['CSS', 'MUI'],
+  },
 ];

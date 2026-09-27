@@ -13,9 +13,13 @@ import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 import Skeleton from '@mui/material/Skeleton';
 import Alert from '@mui/material/Alert';
+import ChevronRight from '@mui/icons-material/ChevronRight';
 
 // --- Local Types ---
 import type { NewsItem } from '@/types/news';
+
+// --- Local Hooks ---
+import { useLanguageContent } from '@/hooks/useLanguageContent';
 
 // --- Others ---
 import { contents, contentTypeLabels } from '@/data/contents';
@@ -35,6 +39,8 @@ export const Home = () => {
   const [newsError, setNewsError] = useState(false);
 
   const newsCarouselRef = useRef<HTMLDivElement>(null);
+
+  const { data: languageContent } = useLanguageContent();
 
   const generateNewsArticles = useCallback(async () => {
     const response = await fetch('/api/generate-news', {
@@ -120,11 +126,6 @@ export const Home = () => {
 
   const pickup = contents.find(
     (content) => content.id === 'history-nobunaga-europe',
-  );
-  const curiousContents = contents.filter(
-    (content) =>
-      content.id === 'language-spanish-playa' ||
-      content.id === 'science-airplane-window',
   );
 
   if (!pickup) {
@@ -365,42 +366,31 @@ export const Home = () => {
           </CardActionArea>
         </Card>
 
-        <Typography
-          variant="h6"
-          sx={{
-            mt: 4,
-            mb: 2,
-            fontWeight: 'bold',
-          }}
-        >
-          ちょっと気になる
+        <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold' }}>
+          Language
         </Typography>
 
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: 2,
-          }}
-        >
-          {curiousContents.map((content) => (
-            <Card key={content.id}>
-              <CardActionArea
-                onClick={() =>
-                  navigate(`/contents/${content.id}`, { state: { from: '/' } })
-                }
-              >
-                <CardContent>
-                  <Typography variant="body2">
-                    {contentTypeLabels[content.type]}
-                  </Typography>
+        <Card>
+          <CardActionArea onClick={() => navigate('/language')}>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                今日の一文
+              </Typography>
 
-                  <Typography variant="h6">{content.title}</Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          ))}
-        </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <Typography variant="h6">{languageContent?.text}</Typography>
+
+                <ChevronRight color="action" />
+              </Box>
+            </CardContent>
+          </CardActionArea>
+        </Card>
       </Box>
     </Box>
   );
