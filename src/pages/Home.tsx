@@ -22,7 +22,7 @@ import type { NewsItem } from '@/types/news';
 import { useLanguageContent } from '@/hooks/useLanguageContent';
 
 // --- Others ---
-import { contents, contentTypeLabels } from '@/data/contents';
+import { contents } from '@/data/contents';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -349,26 +349,6 @@ export const Home = () => {
             />
           ))}
         </Box>
-
-        <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold' }}>
-          今日のピックアップ
-        </Typography>
-
-        <Card>
-          <CardActionArea
-            onClick={() =>
-              navigate(`/contents/${pickup.id}`, { state: { from: '/' } })
-            }
-          >
-            <CardContent>
-              <Typography variant="body2">
-                {contentTypeLabels[pickup.type]}
-              </Typography>
-
-              <Typography variant="h6">{pickup.title}</Typography>
-            </CardContent>
-          </CardActionArea>
-        </Card>
 
         <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold' }}>
           Language

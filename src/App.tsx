@@ -9,18 +9,23 @@ import { Discover } from '@/pages/Discover';
 import { ContentDetail } from '@/pages/ContentDetail';
 import { NewsDetail } from '@/pages/NewsDetail';
 import { Language } from '@/pages/Language';
+import { ScrollToTop } from '@/components/ScrollToTop';
 
 export const App = () => {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/language" element={<Language />} />
-        <Route path="/discover" element={<Discover />} />
-        <Route path="/memo" element={<Memo />} />
-        <Route path="/contents/:id" element={<ContentDetail />} />
-        <Route path="/news/:id" element={<NewsDetail />} />
-      </Route>
-    </Routes>
+    <>
+      <ScrollToTop />
+
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/language" element={<Language />} />
+          <Route path="/discover" element={<Discover />} />
+          <Route path="/memo" element={<Memo />} />
+          <Route path="/contents/:id" element={<ContentDetail />} />
+          <Route path="/news/:id" element={<NewsDetail />} />
+        </Route>
+      </Routes>
+    </>
   );
 };
