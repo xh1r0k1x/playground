@@ -1,3 +1,6 @@
+// --- React Hooks ---
+import { useState } from 'react';
+
 // --- MUI ---
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -9,11 +12,33 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { useLanguageContent } from '@/hooks/useLanguageContent';
 
 export const Language = () => {
-  const { data: content } = useLanguageContent();
+  const [excludeId, setExcludeId] = useState<number>();
+  const {
+    data: content,
+    isLoading,
+    isError,
+    isFetching,
+  } = useLanguageContent(excludeId);
+
+  if (isLoading) {
+    return <Typography>読み込み中...</Typography>;
+  }
+
+  if (isError) {
+    return <Typography>Languageコンテンツを取得できませんでした</Typography>;
+  }
 
   if (!content) {
     return null;
   }
+
+  const languageNames: Record<string, string> = {
+    'en-US': 'English',
+    'fr-FR': 'Français',
+    'de-DE': 'Deutsch',
+    'it-IT': 'Italiano',
+    'es-ES': 'Español',
+  };
 
   const speak = (text: string, rate = 1) => {
     const utterance = new SpeechSynthesisUtterance(text);
@@ -26,7 +51,15 @@ export const Language = () => {
 
   return (
     <>
-      <Typography variant="h4">Language</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Typography variant="h4">
+          Language - {languageNames[content.language]}
+        </Typography>
+
+        <Button disabled={isFetching} onClick={() => setExcludeId(content.id)}>
+          別の1件
+        </Button>
+      </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 3 }}>
         <Typography variant="h5">{content.text}</Typography>

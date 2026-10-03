@@ -1,5 +1,5 @@
 // --- Local Types ---
-import type { LanguageContent } from '../src/types/language';
+import type { GeneratedLanguageContent } from '../src/types/language';
 
 // --- Others ---
 import { GoogleGenAI } from '@google/genai';
@@ -16,20 +16,29 @@ const supabase = createClient(
 
 const languages = ['English', 'French', 'German', 'Italian', 'Spanish'];
 
-const generateLanguage = async (): Promise<Response> => {
+const isObject = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null;
+};
+
+const generateContents = async (
+  generateCount: number,
+): Promise<GeneratedLanguageContent[]> => {
   const selectedLanguages = [...languages]
     .sort(() => Math.random() - 0.5)
-    .slice(0, 3);
+    .slice(0, generateCount);
 
-  const response = await ai.interactions.create({
-    model: 'gemini-3.5-flash-lite',
-    input: `
-      外国語学習用のコンテンツを3件生成してください。
+  let response;
+
+  try {
+    response = await ai.interactions.create({
+      model: 'gemini-3.5-flash-lite',
+      input: `
+      外国語学習用のコンテンツを${generateCount}件生成してください。
       
       以下の3言語について、それぞれ1件ずつ生成してください。
       ${selectedLanguages.map((language) => `- ${language}`).join('\n')}
 
-      3件は、言語だけでなく、場面・話題・文の内容も互いに異なるものにしてください。
+      ${generateCount}件は、言語だけでなく、場面・話題・文の内容も互いに異なるものにしてください。
 
       次のJSON形式だけを返してください。
       Markdownやコードブロックは付けないでください。
@@ -50,8 +59,8 @@ const generateLanguage = async (): Promise<Response> => {
         }
       ]
 
-      上記のオブジェクトを3件含むJSON配列を返してください。
-      配列の各要素は、指定された3言語に1対1で対応させてください。
+      上記のオブジェクトを${generateCount}件含むJSON配列を返してください。
+      配列の各要素は、指定された${generateCount}言語に1対1で対応させてください。
 
       expressions は、重要な表現だけでなく、元の文章 text 全体を学習できるように分割してください。
       expressions の text を元の文章の順番に並べたとき、元の文章のすべての語句が含まれるようにしてください。
@@ -62,19 +71,145 @@ const generateLanguage = async (): Promise<Response> => {
       短く分割しすぎず、1つの単語を複数の要素に分割しないでください。
       分割が不要な表現は、expression.text 全体を1要素として入れてください。
     `,
-  });
+    });
+  } catch (error) {
+    console.error('Failed to generate language content:', error);
+    throw new Error('Failed to generate language content', { cause: error });
+  }
 
-  if (!response.output_text) {
+  let parsed: unknown;
+
+  try {
+    if (!response.output_text) {
+      throw new Error('Gemini response is empty');
+    }
+
+    parsed = JSON.parse(response.output_text);
+  } catch (error) {
+    console.error('Failed to parse Gemini response:', error);
+    throw new Error('Failed to parse Gemini response', { cause: error });
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error('Invalid Gemini response');
+  }
+
+  const isValidContent = parsed.every(
+    (content) =>
+      typeof content === 'object' &&
+      content !== null &&
+      typeof content.text === 'string' &&
+      typeof content.translation === 'string' &&
+      typeof content.language === 'string' &&
+      Array.isArray(content.expressions) &&
+      content.expressions.every(
+        (expression: unknown) =>
+          isObject(expression) &&
+          typeof expression.text === 'string' &&
+          typeof expression.meaning === 'string' &&
+          typeof expression.explanation === 'string' &&
+          Array.isArray(expression.pronunciationParts) &&
+          expression.pronunciationParts.every(
+            (part) => typeof part === 'string',
+          ),
+      ),
+  );
+
+  if (!isValidContent) {
+    console.error('Invalid Gemini response');
+    throw new Error('Invalid Gemini response');
+  }
+
+  return parsed as GeneratedLanguageContent[];
+};
+
+const generateLanguage = async (generateCount = 3): Promise<Response> => {
+  const maxRetryCount = 3;
+  let retryCount = 0;
+
+  const { data: existingContents, error: selectError } = await supabase
+    .from('language_contents')
+    .select('text');
+
+  if (selectError) {
+    console.error('Failed to get existing language contents:', selectError);
+
     return Response.json(
-      { error: 'Language content was not returned' },
-      { status: 502 },
+      { error: 'Failed to get existing language contents' },
+      { status: 500 },
     );
   }
 
-  const contents: LanguageContent[] = JSON.parse(response.output_text);
+  const existingTexts = new Set(
+    existingContents.map((content) => content.text),
+  );
+
+  let contents: GeneratedLanguageContent[];
+
+  try {
+    contents = await generateContents(generateCount);
+  } catch (error) {
+    console.error('Language generation failed:', error);
+
+    return Response.json(
+      { error: 'Language generation failed' },
+      { status: 500 },
+    );
+  }
+
+  const generatedTexts = new Set<string>();
+
+  let newContents = contents.filter((content) => {
+    if (existingTexts.has(content.text) || generatedTexts.has(content.text)) {
+      return false;
+    }
+
+    generatedTexts.add(content.text);
+    return true;
+  });
+
+  while (newContents.length < generateCount && retryCount < maxRetryCount) {
+    retryCount += 1;
+
+    const remainingCount = generateCount - newContents.length;
+
+    console.log(
+      `Retrying language generation: attempt ${retryCount}/${maxRetryCount}, generating ${remainingCount} content(s)`,
+    );
+
+    let regeneratedContents: GeneratedLanguageContent[];
+
+    try {
+      regeneratedContents = await generateContents(remainingCount);
+    } catch (error) {
+      console.error('Language regeneration failed:', error);
+
+      return Response.json(
+        { error: 'Language regeneration failed' },
+        { status: 500 },
+      );
+    }
+
+    const uniqueRegeneratedContents = regeneratedContents.filter((content) => {
+      if (existingTexts.has(content.text) || generatedTexts.has(content.text)) {
+        return false;
+      }
+
+      generatedTexts.add(content.text);
+      return true;
+    });
+
+    newContents = [...newContents, ...uniqueRegeneratedContents];
+  }
+
+  if (newContents.length < generateCount) {
+    console.warn(
+      `Language generation completed with only ${newContents.length}/${generateCount} unique content(s)`,
+    );
+  }
 
   const { error } = await supabase.from('language_contents').insert(
-    contents.map((content) => ({
+    newContents.map((content) => ({
       text: content.text,
       translation: content.translation,
       language: content.language,
@@ -83,7 +218,7 @@ const generateLanguage = async (): Promise<Response> => {
   );
 
   if (error) {
-    console.error(error);
+    console.error('Failed to save language content:', error);
 
     return Response.json(
       { error: 'Failed to save language content' },
@@ -91,7 +226,11 @@ const generateLanguage = async (): Promise<Response> => {
     );
   }
 
-  return new Response(JSON.stringify(contents), {
+  console.log(
+    `Language generation succeeded: ${newContents.length} contents saved`,
+  );
+
+  return new Response(JSON.stringify(newContents), {
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
     },

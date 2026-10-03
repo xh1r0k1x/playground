@@ -6,7 +6,14 @@ export type LanguageExpression = {
 };
 
 export type LanguageContent = {
-  id: string;
+  id: number;
+  text: string;
+  translation: string;
+  language: string;
+  expressions: LanguageExpression[];
+};
+
+export type GeneratedLanguageContent = {
   text: string;
   translation: string;
   language: string;

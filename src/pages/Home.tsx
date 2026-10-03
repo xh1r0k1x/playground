@@ -40,7 +40,11 @@ export const Home = () => {
 
   const newsCarouselRef = useRef<HTMLDivElement>(null);
 
-  const { data: languageContent } = useLanguageContent();
+  const {
+    data: languageContent,
+    isLoading: isLanguageLoading,
+    isError: isLanguageError,
+  } = useLanguageContent();
 
   const generateNewsArticles = useCallback(async () => {
     const response = await fetch('/api/generate-news', {
@@ -384,7 +388,13 @@ export const Home = () => {
                   justifyContent: 'space-between',
                 }}
               >
-                <Typography variant="h6">{languageContent?.text}</Typography>
+                <Typography variant="h6">
+                  {isLanguageLoading
+                    ? '読み込み中...'
+                    : isLanguageError
+                      ? '今日の一文を取得できませんでした'
+                      : languageContent?.text}
+                </Typography>
 
                 <ChevronRight color="action" />
               </Box>
